@@ -1,25 +1,38 @@
 package danil.messenger.controllers;
 
-import danil.messenger.services.RegistrationService;
-import danil.messenger.util.UserValidator;
+import danil.messenger.dto.AuthResponse;
+import danil.messenger.dto.LoginRequest;
+import danil.messenger.dto.RegisterRequest;
+import danil.messenger.services.AuthService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 public class AuthController {
 
-    private final RegistrationService registrationService;
-    private final UserValidator userValidator;
+    private final AuthService authService;
 
     @Autowired
-    public AuthController(RegistrationService registrationService, UserValidator userValidator) {
-        this.registrationService = registrationService;
-        this.userValidator = userValidator;
+    public AuthController(AuthService authService) {
+        this.authService = authService;
     }
 
+    @PostMapping("/register")
+    public ResponseEntity<AuthResponse> register(@RequestBody @Valid RegisterRequest request)
+    {
+        return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(request));
+    }
 
-
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> login (@RequestBody @Valid LoginRequest request)
+    {
+        return ResponseEntity.ok(authService.login(request));
+    }
 }
