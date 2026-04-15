@@ -51,6 +51,7 @@ public class AuthServiceImpl implements AuthService {
         String token = jwtService.generateToken(user);
         AuthResponse response = authResponseMapper.toDto(user);
         response.setToken(token);
+        response.setMessage("Регистрация успешна");
         return response;
     }
 
