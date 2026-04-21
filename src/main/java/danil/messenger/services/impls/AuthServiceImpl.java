@@ -33,7 +33,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse register(RegisterRequest request) {
-        if (userRepository.existsByUsername(request.getUsername()))
+        if (userRepository.existsByUsernameContainsIgnoreCase(request.getUsername()))
         {
             throw new AppException(HttpStatus.CONFLICT, "Пользователь с таким именем уже зарегестрирован");
         }
@@ -57,9 +57,13 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse login(LoginRequest request) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
-        User user = userRepository.findByUsername(request.getUsername())
+        //authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+        User user = userRepository.findByUsernameContainsIgnoreCase(request.getUsername())
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword()))
+        {
+            throw new AppException(HttpStatus.UNAUTHORIZED, "Неверный пароль");
+        }
         String token = jwtService.generateToken(user);
         return AuthResponse.builder()
                 .token(token)

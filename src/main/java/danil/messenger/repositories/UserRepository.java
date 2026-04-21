@@ -13,6 +13,11 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Query("SELECT u.avatar FROM User u WHERE u.id = :id")
     byte[] findAvatarById(@Param("id") int id);
 
-    boolean existsByUsername(String username);
+    boolean existsByUsernameContainsIgnoreCase(String username);
     boolean existsByEmail(String email);
+
+    Optional<User> findByUsernameContainsIgnoreCase(String username);
+
+    @Query("SELECT u FROM User u WHERE LOWER(u.username) LIKE LOWER(CONCAT('%', :username, '%'))")
+    Optional<User> searchByUsername(@Param("username") String username);
 }

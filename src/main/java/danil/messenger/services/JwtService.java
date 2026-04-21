@@ -10,11 +10,13 @@ import java.util.function.Function;
 
 public interface JwtService {
     String generateToken(User user);
-    String generateToken(Map<String, Object> extraClaims, UserDetails userDetails);
+    //String generateToken(Map<String, Object> extraClaims, UserDetails userDetails);
     String extractUsername(String token);
-    boolean isTokenValid(String token, UserDetails userDetails);
+    boolean isTokenValid(String token);
     <T> T extractClaim(String token, Function<Claims, T> resolver);
     Claims extractAllClaims(String token);
     boolean isTokenExpired(String token);
     SecretKey getSigningKey();
+    String extractRole(String token);
+    int extractUserId(String token);
 }

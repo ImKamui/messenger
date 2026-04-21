@@ -3,6 +3,7 @@ package danil.messenger.services.impls;
 import danil.messenger.models.User;
 import danil.messenger.services.JwtService;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -31,20 +32,29 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public String generateToken(User user) {
-        UserDetails userDetails = usersDetailsServiceImpl.loadUserByUsername(user.getUsername());
-        return generateToken(new HashMap<>(), userDetails);
-    }
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", user.getId());
+        claims.put("role", user.getRole());
 
-    @Override
-    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
         return Jwts.builder()
-                .claims(extraClaims)
-                .subject(userDetails.getUsername())
+                .claims(claims)
+                .subject(user.getUsername())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSigningKey(), Jwts.SIG.HS256)
                 .compact();
     }
+
+//    @Override
+//    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+//        return Jwts.builder()
+//                .claims(extraClaims)
+//                .subject(userDetails.getUsername())
+//                .issuedAt(new Date())
+//                .expiration(new Date(System.currentTimeMillis() + expiration))
+//                .signWith(getSigningKey(), Jwts.SIG.HS256)
+//                .compact();
+//    }
 
     @Override
     public String extractUsername(String token) {
@@ -52,10 +62,28 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+    public String extractRole(String token)
+    {
+        return extractAllClaims(token).get("role", String.class);
     }
+
+    @Override
+    public int extractUserId(String token) {
+        return extractAllClaims(token).get("userId", Integer.class);
+    }
+
+    @Override
+    public boolean isTokenValid(String token) {
+        try {
+            extractAllClaims(token);
+            return true;
+        }
+        catch (JwtException | IllegalArgumentException e)
+        {
+            return false;
+        }
+    }
+
 
     @Override
     public <T> T extractClaim(String token, Function<Claims, T> resolver) {
