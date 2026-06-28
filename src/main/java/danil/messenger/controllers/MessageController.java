@@ -4,6 +4,7 @@ import danil.messenger.dto.message.MessageResponse;
 import danil.messenger.dto.message.SendMessageRequest;
 import danil.messenger.dto.message.SendPrivateMessageRequest;
 import danil.messenger.dto.message.UpdateMessageStatusRequest;
+import danil.messenger.models.User;
 import danil.messenger.services.JwtService;
 import danil.messenger.services.messages.MessageService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -39,20 +41,18 @@ public class MessageController {
     }
 
     @GetMapping("/chat/{chatId}")
-    public Page<MessageResponse> getMessage(@PathVariable int chatId, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size, HttpServletRequest request)
+    public Page<MessageResponse> getMessage(@PathVariable int chatId, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size, @AuthenticationPrincipal User user)
     {
-        int userId = extractUserIdFromRequest(request);
         Pageable pageable = PageRequest.of(page, size);
-        Page<MessageResponse> messages = messageService.getMessage(chatId, userId, pageable);
+        Page<MessageResponse> messages = messageService.getMessage(chatId, user.getId(), pageable);
 
         return messages;
     }
 
-    @PatchMapping("/{messageId}")
-    public ResponseEntity<MessageResponse> updateMessageStatus(@PathVariable int messageId, @Valid @RequestBody UpdateMessageStatusRequest request, HttpServletRequest httpRequest)
+    @PatchMapping("/{messageId}/status")
+    public ResponseEntity<MessageResponse> updateMessageStatus(@PathVariable int messageId, @Valid @RequestBody UpdateMessageStatusRequest request, @AuthenticationPrincipal User user)
     {
-        int userId = extractUserIdFromRequest(httpRequest);
-        MessageResponse response = messageService.updateMessageStatus(messageId, userId, request);
+        MessageResponse response = messageService.updateMessageStatus(messageId, user.getId(), request);
         return ResponseEntity.ok(response);
     }
 

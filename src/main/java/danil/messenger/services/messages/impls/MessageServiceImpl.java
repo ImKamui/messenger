@@ -68,7 +68,7 @@ public class MessageServiceImpl implements MessageService {
     @Override
     @Transactional
     public Page<MessageResponse> getMessage(int chatId, int userId, Pageable pageable) {
-        if (!chatParticipantRepository.existsById(chatId))
+        if (!chatParticipantRepository.existsByChatId(chatId))
         {
             throw new AppException(HttpStatus.NOT_FOUND, "Чат не найден");
         }
